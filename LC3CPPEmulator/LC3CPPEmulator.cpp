@@ -1,13 +1,25 @@
-// LC3CPPEmulator.cpp : This file contains the 'main' function. Program execution begins and ends there.
+﻿// LC3CPPEmulator.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
 #include "lc3_cpu.h"
-
+#include <iostream>
+#include <chrono>
+#include <fcntl.h>
+#include <io.h>
 
 int main()
 {
+    
+    auto start = std::chrono::high_resolution_clock::now();
+
     lc3_cpu cpu1;
     cpu1.cpu_cycle();
+
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    _setmode(_fileno(stdout), _O_U16TEXT);
+    std::wcout << L"Time Taken by CPU Emulation: " << duration.count() << L" μs" << std::endl;
+    std::cin.get();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

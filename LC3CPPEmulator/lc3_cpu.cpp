@@ -304,5 +304,4 @@ bool halt = false;
 
 		}
 		lc3_cpu::print_regs();
-		std::cin.get();
 	}
