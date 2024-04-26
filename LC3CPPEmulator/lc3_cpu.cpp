@@ -277,12 +277,12 @@ bool halt = false;
 
 	void lc3_cpu::print_flags() const
 	{
-		std::cout << "zero_flag: " << zero_flag << std::endl;
-		std::cout << "positive_flag: " << positive_flag << std::endl;
-		std::cout << "negative_flag: " << negative_flag << std::endl;
-		std::cout << "is_negative_branch: " << is_negative_branch << std::endl;
-		std::cout << "is_positive_branch: " << is_positive_branch << std::endl;
-		std::cout << "is_zero_branch: " << is_zero_branch << std::endl;
+		std::cout << "zero_flag: " << zero_flag << std::endl
+		<< "positive_flag: " << positive_flag << std::endl
+		<< "negative_flag: " << negative_flag << std::endl
+		<< "is_negative_branch: " << is_negative_branch << std::endl
+		<< "is_positive_branch: " << is_positive_branch << std::endl
+		<< "is_zero_branch: " << is_zero_branch << std::endl;
 	}
 	void lc3_cpu::cpu_cycle()
 	{
