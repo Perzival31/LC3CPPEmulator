@@ -17,7 +17,7 @@ unsigned short DR = 0; //Also SR
 
 unsigned short SR1 = 0;
 
-bool  op_is_immediate = 0;
+bool  op_is_immediate = false;
 
 unsigned short SR2 = 0;
 
@@ -35,11 +35,11 @@ unsigned short offset6 = 0;
 
 signed short SE_offset6 = 0;
 
-bool is_negative_branch = 0;
+bool is_negative_branch = false;
 
-bool is_positive_branch = 0;
+bool is_positive_branch = false;
 
-bool is_zero_branch = 0;
+bool is_zero_branch = false;
 
 signed short PCoffset11 = 0;
 
@@ -47,7 +47,7 @@ short SE_PCoffset11 = 0;
 
 unsigned short trapvect8 = 0;
 
-bool is_JSRR = 0;
+bool is_JSRR = false;
 
 //ALU Outputs
 
