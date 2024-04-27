@@ -7,68 +7,6 @@
 #include <sstream>
 #include <bitset>
 
-std::array<short, 8> regfile; //Array that stores the eight registers.
-
-unsigned short PC = 0; //Points to the current instruction in the instruct_mem file.
-
-unsigned short op_code = 0;
-
-unsigned short DR = 0; //Also SR
-
-unsigned short SR1 = 0;
-
-bool  op_is_immediate = false;
-
-unsigned short SR2 = 0;
-
-unsigned short imm5 = 0;
-
-signed short SE_imm5 = 0;
-
-unsigned short BaseR = 0;
-
-unsigned short PCoffset9 = 0;
-
-signed short SE_PCoffset9 = 0;
-
-unsigned short offset6 = 0;
-
-signed short SE_offset6 = 0;
-
-bool is_negative_branch = false;
-
-bool is_positive_branch = false;
-
-bool is_zero_branch = false;
-
-signed short PCoffset11 = 0;
-
-short SE_PCoffset11 = 0;
-
-unsigned short trapvect8 = 0;
-
-bool is_JSRR = false;
-
-//ALU Outputs
-
-bool zero_flag = false;
-
-bool positive_flag = false;
-
-bool negative_flag = false;
-
-//Memory Array
-
-std::array<short, 65536> memory;
-
-//Instruction Memory
-
-std::vector<unsigned short> instruction_memory;
-
-//Halt for stopping Emulator
-
-bool halt = false;
-
 	//Functions
 	std::vector<unsigned short> lc3_cpu::get_instruction_memory()
 	{
@@ -78,7 +16,7 @@ bool halt = false;
 
 		if (file.fail())
 		{
-			std::cout << "File failed to open" << std::endl;
+			throw std::runtime_error("Could not find or open file.");
 		}
 
 		std::vector<unsigned short> contents;
