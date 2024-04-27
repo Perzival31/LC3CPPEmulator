@@ -25,6 +25,14 @@ constexpr auto JSR = 0x4;
 constexpr auto JMP = 0xC; //Also RET
 constexpr auto RTI = 0x8;//Not Implemented
 constexpr auto TRAP = 0xF;//Not Implemented
+
+//Trap Names
+constexpr auto GETC = 0x20;
+constexpr auto OUT = 0x21;
+constexpr auto PUTS = 0x22;
+constexpr auto IN = 0x23;
+constexpr auto PUTSP = 0x24;
+constexpr auto HALT = 0x25;
 	
 class lc3_cpu
 {
@@ -55,16 +63,13 @@ private:
 	unsigned short imm5 = 0;
 	signed short SE_imm5 = 0;
 	unsigned short BaseR = 0;
-	unsigned short PCoffset9 = 0;
-	signed short SE_PCoffset9 = 0;
-	unsigned short offset6 = 0;
-	signed short SE_offset6 = 0;
+	signed short PCoffset9 = 0;
+	signed short offset6 = 0;
 	bool is_negative_branch = false;
 	bool is_positive_branch = false;
 	bool is_zero_branch = false;
 	signed short PCoffset11 = 0;
-	signed short SE_PCoffset11 = 0;
-	unsigned short trapvect8 = 0;
+	signed short trapvect8 = 0;
 	bool is_JSRR = false;
 	//ALU Outputs
 

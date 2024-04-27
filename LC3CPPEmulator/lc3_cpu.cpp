@@ -6,6 +6,7 @@
 #include <array>
 #include <sstream>
 #include <bitset>
+#include <conio.h>
 
 	//Functions
 	std::vector<unsigned short> lc3_cpu::get_instruction_memory()
@@ -61,23 +62,22 @@
 		PCoffset11 = instruction_memory[PC] & 0x07FF;
 		trapvect8 = instruction_memory[PC] & 0x00FF;
 		is_JSRR = instruction_memory[PC] & 0x0800;
-
-		//2's comp sign extention for ALU math
-		SE_PCoffset9 = (PCoffset9 & 0x0100) ? (0xFF00 | PCoffset9) : PCoffset9;
-		SE_offset6 = (offset6 & 0x0020) ? (0xFFC0 | offset6) : offset6;
-		SE_PCoffset11 = (PCoffset11 & 0x0400) ? (0xF800 | PCoffset11) : PCoffset11;
-		SE_imm5 = (imm5 & 0x0010) ? (0xFFE0 | imm5) : imm5;
 	}
 
 	void lc3_cpu::ALU() //Preferms ADD, AND and NOT on registers.
 	{
+		//Sign Extends so negative numbers are calculated correctly.
+		if (imm5 & 0x0010)
+		{
+			imm5 = imm5 | 0xFFE0;
+		}
 		switch (op_code)
 		{
 		case ADD:
 			switch (op_is_immediate)
 			{
 			case true:
-				regfile[DR] = (regfile[SR1] + SE_imm5);
+				regfile[DR] = (regfile[SR1] + imm5);
 				break;
 			case false:
 				regfile[DR] = (regfile[SR1] + regfile[SR2]);
@@ -88,7 +88,7 @@
 			switch (op_is_immediate)
 			{
 			case true:
-				regfile[DR] = (regfile[SR1] & SE_imm5);
+				regfile[DR] = (regfile[SR1] & imm5);
 				break;
 			case false:
 				regfile[DR] = (regfile[SR1] & regfile[SR2]);
@@ -106,43 +106,66 @@
 
 	void lc3_cpu::access_memory()
 	{
+		//Sign Extends so negative numbers are calculated correctly.
+		if (PCoffset9 & 0x0100)
+		{
+			PCoffset9 = 0xFF00 | PCoffset9;
+		}
+		if (offset6 & 0x0020)
+		{
+			offset6 = 0xFFC0 | offset6;
+		}
+
 		switch (op_code)
 		{
 		case LD:
-			regfile[DR] = memory[PC + SE_PCoffset9];
+			regfile[DR] = memory[PC + PCoffset9];
 			break;
 		case LDI:
-			regfile[DR] = memory[memory[PC + SE_PCoffset9]];
+			regfile[DR] = memory[memory[PC + PCoffset9]];
 			break;
 		case LDR:
-			regfile[DR] = memory[regfile[BaseR] + SE_offset6];
+			regfile[DR] = memory[regfile[BaseR] + offset6];
 			break;
 		case LEA:
-			regfile[DR] = (PC + SE_offset6);
+			regfile[DR] = (PC + offset6);
 			break;
 		case ST:
-			memory[PC + SE_PCoffset9] = regfile[DR];
+			memory[PC + PCoffset9] = regfile[DR];
 			break;
 		case STI:
-			memory[memory[PC + SE_PCoffset9]] = regfile[DR];
+			memory[memory[PC + PCoffset9]] = regfile[DR];
 			break;
 		case STR:
-			memory[regfile[BaseR] + SE_offset6] = regfile[DR];
+			memory[regfile[BaseR] + offset6] = regfile[DR];
 			break;
 		}
 	}
 
 	void lc3_cpu::control() // Controls PC Jumps and Branches
 	{
+		char left_char = '\0';
+		char right_char = '\0';
+		unsigned short pointer = regfile[0];
+		//Sign Extends so negative numbers are calculated correctly.
+		if (PCoffset11 & 0x0400)
+		{
+			PCoffset11 = 0xF800 | PCoffset11;
+		}
+		if (PCoffset9 & 0x0100)
+		{
+			PCoffset9 = 0xFF00 | PCoffset9;
+		}
+
 		switch (op_code)
 		{
 		case BR:
 			if (is_positive_branch && positive_flag)
-				PC += SE_PCoffset9;
+				PC += PCoffset9;
 			else if (is_negative_branch && negative_flag)
-				PC += SE_PCoffset9;
+				PC += PCoffset9;
 			else if (is_zero_branch && zero_flag)
-				PC += SE_PCoffset9;
+				PC += PCoffset9;
 			else
 				++PC;
 			break;
@@ -150,7 +173,7 @@
 		case JSR:
 			if (!is_JSRR)
 				regfile[0x7] = PC;
-			PC += is_JSRR ? regfile[BaseR] : SE_PCoffset11;
+			PC += is_JSRR ? regfile[BaseR] : PCoffset11;
 			break;
 
 		case JMP:
@@ -158,12 +181,50 @@
 			break;
 
 		case RTI:
-		case TRAP:
-			std::cout << "RTI and TRAP are not currently implemented in this Emulator\n";
-			halt = true;
+			throw std::runtime_error("RTI is not currently supported.");
 			break;
-
-		default:
+		case TRAP:
+			switch (trapvect8) 
+			{
+			case GETC: //
+				//get single character from the keyboard
+				regfile[0] = (short)_getch();
+				break;
+			case OUT: 
+				//Write out character in r0[7:0] to console display
+				std::cout << char(regfile[0]);
+				break;
+			case PUTS:
+				//Write a string of ASCII character to the console display. The characters are contained in consecutive memory locations, starting at the address sepecified in R0. Writing terminates with a null in a memory location.
+				while ((char)memory[pointer] != '\0')
+				{
+					std::cout << (char)memory[pointer];
+					++pointer;
+				}
+				break;
+			case IN:
+				// Print a prompt on the screen and read a single character from the keyboard. The character is echoed onto the console monitor, and its ascii code is copied into R0. The high eight bits of r0 are cleared.
+				regfile[0] = (short)getchar();
+				break;
+			case PUTSP:
+				//Same as PUTS but two characters per memory location.
+				
+					while ((char)memory[pointer] != '\0')
+					{
+						if (((char)(memory[pointer] | 0xF0) >> 8) == '\0')
+						{
+							break;
+						}
+						std::cout << (char)((memory[pointer] | 0xF0) >> 8)
+							<< (char)memory[pointer];
+						++pointer;
+					}	
+				break;
+			case HALT:
+				std::cout << "HALT Instruction, Halting User Program." << std::endl;
+				halt = true;
+				break;
+			}
 			break;
 		}
 	}
@@ -199,7 +260,7 @@
 			break;
 
 		default:
-			std::cout << "Unsupported op_code" << std::endl;
+			throw std::runtime_error("Unsupported op_code");
 			break;
 		}
 	}
@@ -236,6 +297,7 @@
 				std::cout << "Reached end of Program, halting." << std::endl;
 				halt = true;
 			}
+			//std::cout << "PC: " << PC << std::endl;
 			//print_regs();
 			//print_flags();
 			//std::cin.get();
