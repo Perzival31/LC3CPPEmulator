@@ -10,40 +10,39 @@
 
 //Op Codes Decoded
 
-constexpr auto ADD = 0x1;
-constexpr auto AND = 0x5;
-constexpr auto NOT = 0x9;
-constexpr auto LD = 0x2;
-constexpr auto LDI = 0xA;
-constexpr auto LDR = 0x6;
-constexpr auto LEA = 0xE;
-constexpr auto ST = 0x3;
-constexpr auto STI = 0xB;
-constexpr auto STR = 0x7;
-constexpr auto BR = 0x0;
-constexpr auto JSR = 0x4;
-constexpr auto JMP = 0xC; //Also RET
-constexpr auto RTI = 0x8;//Not Implemented
-constexpr auto TRAP = 0xF;//Not Implemented
+constexpr unsigned short ADD = 0x1;
+constexpr unsigned short AND = 0x5;
+constexpr unsigned short NOT = 0x9;
+constexpr unsigned short LD = 0x2;
+constexpr unsigned short LDI = 0xA;
+constexpr unsigned short LDR = 0x6;
+constexpr unsigned short LEA = 0xE;
+constexpr unsigned short ST = 0x3;
+constexpr unsigned short STI = 0xB;
+constexpr unsigned short STR = 0x7;
+constexpr unsigned short BR = 0x0;
+constexpr unsigned short JSR = 0x4;
+constexpr unsigned short JMP = 0xC; //Also RET
+constexpr unsigned short RTI = 0x8;//Not Implemented
+constexpr unsigned short TRAP = 0xF;//Not Implemented
 
 //Trap Names
-constexpr auto GETC = 0x20;
-constexpr auto OUT = 0x21;
-constexpr auto PUTS = 0x22;
-constexpr auto IN = 0x23;
-constexpr auto PUTSP = 0x24;
-constexpr auto HALT = 0x25;
+constexpr unsigned short GETC = 0x20;
+constexpr unsigned short OUT = 0x21;
+constexpr unsigned short PUTS = 0x22;
+constexpr unsigned short IN = 0x23;
+constexpr unsigned short PUTSP = 0x24;
+constexpr unsigned short HALT = 0x25;
 	
 class lc3_cpu
 {
 public:
 	
 	void cpu_cycle();
-
+	void auto_start_user_program();
 
 private:
-	std::vector<unsigned short> get_instruction_memory();
-	void print_vector(const std::vector<unsigned short>& v) const;
+	void get_instruction_memory();
 	void instruction_decode();
 	void ALU();
 	void access_memory();
@@ -51,9 +50,10 @@ private:
 	void execute();
 	void print_regs() const;
 	void print_flags() const;
-
+	
 	//Common Variables
 	std::array<short, 8> regfile; //Array that stores the eight registers.
+	std::array<unsigned short, 65536> memory;
 	unsigned short PC = 0; //Points to the current instruction in the instruct_mem file.
 	unsigned short op_code = 0;
 	unsigned short DR = 0; //Also SR
@@ -78,10 +78,7 @@ private:
 	bool negative_flag = false;
 	//Memory Array
 
-	std::array<short, 65536> memory;
 	//Instruction Memory
-
-	std::vector<unsigned short> instruction_memory;
 
 	//Halt for stopping Emulator
 	bool halt = false;
