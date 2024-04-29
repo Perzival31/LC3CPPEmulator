@@ -8,6 +8,8 @@
 #include <bitset>
 #include <conio.h>
 
+//LC3 Emulator
+
 	//Functions
 	void lc3_cpu::get_instruction_memory()
 	{
