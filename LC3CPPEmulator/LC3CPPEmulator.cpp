@@ -13,6 +13,7 @@ int main()
     auto start = std::chrono::high_resolution_clock::now();
 
     lc3_cpu cpu1;
+    cpu1.auto_start_user_program();
     cpu1.cpu_cycle();
 
     auto stop = std::chrono::high_resolution_clock::now();

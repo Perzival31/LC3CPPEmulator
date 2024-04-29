@@ -9,7 +9,7 @@
 #include <conio.h>
 
 	//Functions
-	std::vector<unsigned short> lc3_cpu::get_instruction_memory()
+	void lc3_cpu::get_instruction_memory()
 	{
 		std::ifstream file;
 
@@ -20,48 +20,40 @@
 			throw std::runtime_error("Could not find or open file.");
 		}
 
-		std::vector<unsigned short> contents;
-
 		std::string line;
 
 		std::bitset<16> line_bitset;
+
+		unsigned int user_program_start = 0x3000;
 
 		while (!file.eof())
 		{
 			getline(file, line);
 			std::bitset<16> line_bitset(line);
-			contents.emplace_back(line_bitset.to_ulong());
+			memory[user_program_start] = line_bitset.to_ulong();
+			++user_program_start;
 		}
 
 		file.close();
-		return contents;
-	}
-
-	void lc3_cpu::print_vector(const std::vector<unsigned short>& v) const
-	{
-		for (const auto& element : v)
-		{
-			std::cout << element << std::endl;
-		}
 	}
 
 	void lc3_cpu::instruction_decode()
 	{
-		op_code = instruction_memory[PC] >> 12;
-		DR = (instruction_memory[PC] >> 9) & 0x0007;
-		SR1 = (instruction_memory[PC] >> 6) & 0x0007;
-		op_is_immediate = instruction_memory[PC] & 0x0020;
-		SR2 = instruction_memory[PC] & 0x0007;
-		imm5 = instruction_memory[PC] & 0x001F;
-		BaseR = (instruction_memory[PC] >> 6) & 0x0007;
-		PCoffset9 = instruction_memory[PC] & 0x01FF;
-		offset6 = instruction_memory[PC] & 0x003F;
-		is_negative_branch = instruction_memory[PC] & 0x0800;
-		is_zero_branch = instruction_memory[PC] & 0x0400;
-		is_positive_branch = instruction_memory[PC] & 0x0200;
-		PCoffset11 = instruction_memory[PC] & 0x07FF;
-		trapvect8 = instruction_memory[PC] & 0x00FF;
-		is_JSRR = instruction_memory[PC] & 0x0800;
+		op_code = memory[PC] >> 12;
+		DR = (memory[PC] >> 9) & 0x0007;
+		SR1 = (memory[PC] >> 6) & 0x0007;
+		op_is_immediate = memory[PC] & 0x0020;
+		SR2 = memory[PC] & 0x0007;
+		imm5 = memory[PC] & 0x001F;
+		BaseR = (memory[PC] >> 6) & 0x0007;
+		PCoffset9 = memory[PC] & 0x01FF;
+		offset6 = memory[PC] & 0x003F;
+		is_negative_branch = memory[PC] & 0x0800;
+		is_zero_branch = memory[PC] & 0x0400;
+		is_positive_branch = memory[PC] & 0x0200;
+		PCoffset11 = memory[PC] & 0x07FF;
+		trapvect8 = memory[PC] & 0x00FF;
+		is_JSRR = memory[PC] & 0x0800;
 	}
 
 	void lc3_cpu::ALU() //Preferms ADD, AND and NOT on registers.
@@ -204,7 +196,9 @@
 				break;
 			case IN:
 				// Print a prompt on the screen and read a single character from the keyboard. The character is echoed onto the console monitor, and its ascii code is copied into R0. The high eight bits of r0 are cleared.
-				regfile[0] = (short)getchar();
+				std::cout << "Please enter a character." << std::endl;
+				regfile[0] = (short)_getch();
+				std::cout << regfile[0] << std::endl;
 				break;
 			case PUTSP:
 				//Same as PUTS but two characters per memory location.
@@ -225,8 +219,14 @@
 				halt = true;
 				break;
 			}
+			++PC;
 			break;
 		}
+	}
+
+	void lc3_cpu::auto_start_user_program()
+	{
+		PC = 0x3000;
 	}
 
 	void lc3_cpu::execute()
@@ -285,19 +285,14 @@
 	}
 	void lc3_cpu::cpu_cycle()
 	{
-		instruction_memory = lc3_cpu::get_instruction_memory();
+		lc3_cpu::get_instruction_memory();
 		//print_vector(instruction_memory);
 
 		while (halt == false)
 		{
 			instruction_decode();
 			execute();
-			if (instruction_memory.size() == (PC + 1))
-			{
-				std::cout << "Reached end of Program, halting." << std::endl;
-				halt = true;
-			}
-			//std::cout << "PC: " << PC << std::endl;
+
 			//print_regs();
 			//print_flags();
 			//std::cin.get();
